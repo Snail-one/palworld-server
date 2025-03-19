@@ -37,7 +37,6 @@ echo -e "\e[1;36m日志格式:\e[0m $LOG_FORMAT"
 cd ${SERVER_DIR}
 echo -e "\e[1;32m[信息]\e[0m 执行启动命令..."
 echo -e "\e[1;33m启动参数:\e[0m $STARTUP_ARGS"
-echo -e "\e[1;33m启动参数:\e[0m $STARTUP_ARGS"
 
 # 创建启动日志目录
 mkdir -p ${SERVER_DIR}/Logs
