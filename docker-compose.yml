@@ -1,0 +1,45 @@
+services:
+  palworld-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: palworld-server
+    restart: unless-stopped
+    ports:
+      - "8211:8211/udp"  # 游戏端口
+      - "27015:27015/udp"  # 查询端口
+    environment:
+      # 官方启动参数 (在scripts/start.sh中实际使用)
+      - SERVER_PORT=8211  # 服务器端口 (-port=8211)
+      - MAX_PLAYERS=16  # 最大玩家数量 (-players=16)
+      - PUBLIC_IP=  # 公共IP地址，留空为自动检测 (-publicip=x.x.x.x)
+      - PUBLIC_PORT=  # 公共端口，留空为使用SERVER_PORT (-publicport=xxxx)
+      - PUBLIC_LOBBY=false  # 是否为社区服务器 (-publiclobby)
+      - WORKER_THREADS=  # 工作线程数，留空为自动 (-NumberOfWorkerThreadsServer=X)
+      - LOG_FORMAT=text  # 日志格式：text或json (-logformat=text)
+      
+      # RCON相关参数 (在stop.sh中使用)
+      - RCON_ENABLED=true  # RCON是否启用
+      - RCON_PORT=25575  # RCON端口
+      
+      # 容器管理参数 (entrypoint.sh和其他脚本中使用)
+      - CHECK_UPDATE=true  # 启动时检查更新
+      - ENABLE_BACKUPS=false  # 启用自动备份
+      - BACKUP_INTERVAL=6  # 备份间隔（小时）
+      - BACKUP_RETENTION=10  # 备份保留数量
+      - BACKUP_ON_STOP=true  # 运行停止脚本时备份
+      - CHECK_UPDATE_ON_RESTART=true  # 重启时检查更新
+      - SKIP_CONFIG_WAIT=false  # 是否跳过配置等待
+      
+      # 服务器路径变量 (在多个脚本中引用)
+      - SERVER_DIR=/palworld-server  # 服务器数据目录
+      - BACKUP_DIR=/backups  # 备份目录
+      
+      # SteamCMD相关变量 (update.sh中使用)
+      - GAME_ID=2394010  # 幻兽帕鲁服务器的Steam应用ID
+      - STEAMCMD_DIR=/steamcmd  # SteamCMD安装目录
+    volumes:
+      - ./palworld:/palworld-server  # 服务器数据目录
+      - ./backups:/backups  # 备份目录
+    tty: true
+    stdin_open: true 
