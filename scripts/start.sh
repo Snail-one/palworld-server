@@ -4,7 +4,7 @@ echo -e "\e[1;32m[信息]\e[0m 启动幻兽帕鲁服务器..."
 
 # 获取服务器配置参数
 SERVER_PORT=${SERVER_PORT:-"8211"}
-PUBLIC_IP=${PUBLIC_IP:-"0.0.0.0"}
+PUBLIC_IP=${PUBLIC_IP:-""}
 PUBLIC_PORT=${PUBLIC_PORT:-""}
 MAX_PLAYERS=${MAX_PLAYERS:-"16"}
 WORKER_THREADS=${WORKER_THREADS:-""}
