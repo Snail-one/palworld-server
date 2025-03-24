@@ -43,3 +43,4 @@ services:
       - ./backups:/backups  # 备份目录
     tty: true
     stdin_open: true 
+    mem_limit: 8g
