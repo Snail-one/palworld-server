@@ -9,8 +9,6 @@ services:
       - "8211:8211/udp"  # 游戏端口
       - "27015:27015/udp"  # 查询端口
     environment:
-      - PUID=1000  # 替换为你的用户ID
-      - PGID=1000  # 替换为你的组ID
       # 官方启动参数 (在scripts/start.sh中实际使用)
       - SERVER_PORT=8211  # 服务器端口 (-port=8211)
       - MAX_PLAYERS=16  # 最大玩家数量 (-players=16)
