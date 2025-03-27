@@ -11,9 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     BACKUP_DIR=/backups \
     GAME_ID=2394010 \
     GAME_PORT=8211 \
-    QUERY_PORT=27015 \
-    PUID=1000 \
-    PGID=1000
+    QUERY_PORT=27015 
 
 # 安装必要的软件包
 RUN apt-get update && apt-get install -y \
@@ -45,8 +43,9 @@ RUN mkdir -p /home/palworld/cron_jobs && \
     mkdir -p ${SERVER_DIR}/Pal/Saved/Config/LinuxServer
 
 # 创建非root用户
-RUN groupadd -g ${PGID} palgroup && \
-    useradd -m -u ${PUID} -g ${PGID} -d /home/palworld -s /bin/bash palworld
+RUN useradd -m -d /home/palworld -s /bin/bash palworld && \
+    usermod -aG sudo palworld && \
+    echo "palworld ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # 设置目录权限
 RUN chown -R palworld:palworld ${SERVER_DIR} ${STEAMCMD_DIR} ${BACKUP_DIR} && \
