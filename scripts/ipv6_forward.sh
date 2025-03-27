@@ -8,7 +8,7 @@ IPV4_GAME_PORT="${SERVER_PORT:-8211}"
 echo "Starting IPv6 to IPv4 port forwarding..."
 socat UDP6-LISTEN:${IPV6_GAME_PORT},ipv6-v6only=1,fork UDP4:127.0.0.1:${IPV4_GAME_PORT} &
 # 加入 tcp 端口转发
-socat TCP6-LISTEN:${IPV6_GAME_PORT},ipv6-v6only=1,fork TCP4:127.0.0.1:${IPV4_GAME_PORT} &
+socat -v UDP6-RECVFROM:[::]:$IPV6_GAME_PORT,fork UDP4-SENDTO:127.0.0.1:$IPV4_GAME_PORT &
 
 # 保持脚本运行
 wait
