@@ -39,10 +39,6 @@ services:
       - GAME_ID=2394010  # 幻兽帕鲁服务器的Steam应用ID
       - STEAMCMD_DIR=/steamcmd  # SteamCMD安装目录
 
-      # IPv6 转发配置
-      - ENABLE_IPV6_FORWARD=true  # 是否启用IPv6转发
-      - IPV6_GAME_PORT=8211  # IPv6 游戏端口
-
     volumes:
       - ./palworld:/palworld-server  # 服务器数据目录
       - ./backups:/backups  # 备份目录
