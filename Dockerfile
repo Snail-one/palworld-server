@@ -44,8 +44,8 @@ RUN mkdir -p /home/palworld/cron_jobs && \
 
 # 创建非root用户
 RUN useradd -m -d /home/palworld -s /bin/bash palworld && \
-    usermod -aG sudo palworld && \
-    echo "palworld ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+#    usermod -aG sudo palworld && \
+#    echo "palworld ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # 设置目录权限
 RUN chown -R palworld:palworld ${SERVER_DIR} ${STEAMCMD_DIR} ${BACKUP_DIR} && \
