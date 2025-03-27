@@ -11,7 +11,10 @@ ENV DEBIAN_FRONTEND=noninteractive \
     BACKUP_DIR=/backups \
     GAME_ID=2394010 \
     GAME_PORT=8211 \
-    QUERY_PORT=27015 
+    QUERY_PORT=27015 \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
 
 # 安装必要的软件包
 RUN apt-get update && apt-get install -y \
@@ -22,6 +25,8 @@ RUN apt-get update && apt-get install -y \
     tmux \
     cron \
     unzip \
+    locales \
+    && locale-gen en_US.UTF-8 \
     && rm -rf /var/lib/apt/lists/*
 
 # 创建目录
