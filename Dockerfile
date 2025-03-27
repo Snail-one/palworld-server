@@ -43,7 +43,7 @@ RUN mkdir -p /home/palworld/cron_jobs && \
     mkdir -p ${SERVER_DIR}/Pal/Saved/Config/LinuxServer
 
 # 创建非root用户
-RUN useradd -m -d /home/palworld -s /bin/bash palworld && \
+RUN useradd -m -d /home/palworld -s /bin/bash palworld
 #    usermod -aG sudo palworld && \
 #    echo "palworld ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
