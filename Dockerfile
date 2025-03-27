@@ -50,7 +50,6 @@ WORKDIR ${SERVER_DIR}
 # 复制脚本到容器
 COPY scripts/ /scripts/
 RUN chmod +x /scripts/*.sh && \
-    chmod +x /scripts/ipv6_forward.sh && \
     chown -R palworld:palworld /scripts
 
 # 创建方便用户使用的命令符号链接
