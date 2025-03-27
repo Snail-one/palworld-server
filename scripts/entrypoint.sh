@@ -48,6 +48,14 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# 判断ENABLE_IPV6_FORWARD是否为true
+if [ "${ENABLE_IPV6_FORWARD}" = "true" ]; then
+    echo -e "\e[1;33m[信息]\e[0m 启用 IPv6 端口转发..."
+    /scripts/ipv6_forward.sh
+else
+    echo -e "\e[1;33m[信息]\e[0m IPv6 端口转发已禁用"
+fi
+
 # 启动服务器
 echo -e "\e[1;32m[信息]\e[0m 启动幻兽帕鲁服务器..."
 exec /scripts/start.sh 

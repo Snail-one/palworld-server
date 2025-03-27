@@ -20,14 +20,8 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     lib32gcc-s1 \
     tmux \
-    sudo \
     cron \
     unzip \
-    python3 \
-    python3-pip \
-    git \
-    nano \
-    htop \
     && rm -rf /var/lib/apt/lists/*
 
 # 创建目录
@@ -43,9 +37,8 @@ RUN mkdir -p /home/palworld/cron_jobs && \
     mkdir -p ${SERVER_DIR}/Pal/Saved/Config/LinuxServer
 
 # 创建非root用户
-RUN useradd -m -d /home/palworld -s /bin/bash palworld
-#    usermod -aG sudo palworld && \
-#    echo "palworld ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN useradd -m -d /home/palworld -s /bin/bash palworld && \
+
 
 # 设置目录权限
 RUN chown -R palworld:palworld ${SERVER_DIR} ${STEAMCMD_DIR} ${BACKUP_DIR} && \
@@ -58,6 +51,7 @@ WORKDIR ${SERVER_DIR}
 # 复制脚本到容器
 COPY scripts/ /scripts/
 RUN chmod +x /scripts/*.sh && \
+    chmod +x /scripts/ipv6_forward.sh && \
     chown -R palworld:palworld /scripts
 
 # 创建方便用户使用的命令符号链接
@@ -80,4 +74,4 @@ VOLUME ["${SERVER_DIR}", "${BACKUP_DIR}"]
 USER palworld
 
 # 设置容器入口点
-ENTRYPOINT ["/scripts/entrypoint.sh"] 
+ENTRYPOINT ["/scripts/entrypoint.sh"]
