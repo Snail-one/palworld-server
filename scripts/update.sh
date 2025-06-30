@@ -2,7 +2,14 @@
 
 echo -e "\e[1;33m[信息]\e[0m 检查幻兽帕鲁服务器更新..."
 
-# 获取当前安装的构建ID
+# 检查是否强制更新模式
+if [ "${FORCE_UPDATE_ON_START}" = "true" ]; then
+    echo -e "\e[1;33m[信息]\e[0m 强制更新模式已启用，跳过版本检查直接更新..."
+    CURRENT_BUILDID="force"
+    LATEST_BUILDID="update"
+else
+    # 正常的版本检查流程
+    # 获取当前安装的构建ID
     if [ -f "${SERVER_DIR}/steamapps/appmanifest_${GAME_ID}.acf" ]; then
         CURRENT_BUILDID=$(grep -oP '"buildid"\s*"\K[^"]+' ${SERVER_DIR}/steamapps/appmanifest_${GAME_ID}.acf)
         echo -e "\e[1;36m当前构建ID:\e[0m $CURRENT_BUILDID"
@@ -13,8 +20,6 @@ echo -e "\e[1;33m[信息]\e[0m 检查幻兽帕鲁服务器更新..."
 
     # 使用SteamCMD.net API获取最新构建ID
     echo -e "\e[1;33m[信息]\e[0m 获取最新构建ID..."
-
-    # 使用SteamCMD.net API
     API_URL="https://api.steamcmd.net/v1/info/${GAME_ID}"
 
     # 使用curl获取API响应
@@ -24,17 +29,29 @@ echo -e "\e[1;33m[信息]\e[0m 检查幻兽帕鲁服务器更新..."
 
     # 检查API响应是否成功
     if [ $CURL_EXIT_CODE -eq 0 ] && [ ! -z "$API_RESPONSE" ]; then
-        # 添加调试信息（仅在DEBUG模式下显示）
-        if [ "${DEBUG}" = "true" ]; then
-            echo -e "\e[1;34m[调试]\e[0m API响应: $(echo "$API_RESPONSE" | head -c 200)..."
-        fi
+        # 打印API响应数据用于调试
+        echo -e "\e[1;34m[调试]\e[0m API响应数据:"
+        echo "$API_RESPONSE" | head -c 500
+        echo ""
+        echo -e "\e[1;34m[调试]\e[0m ..."
         
         # 检查API是否返回成功状态
         API_STATUS=$(echo "$API_RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+        echo -e "\e[1;34m[调试]\e[0m API状态: '$API_STATUS'"
         
         if [ "$API_STATUS" = "success" ]; then
             # 从嵌套JSON结构中提取构建ID：data.2394010.depots.branches.public.buildid
-            LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"public":{"buildid":"[^"]*"' | sed 's/.*"buildid":"\([^"]*\)".*/\1/')
+            echo -e "\e[1;34m[调试]\e[0m 尝试提取构建ID..."
+            
+            # 先尝试简单的搜索
+            LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"buildid":"[^"]*"' | head -1 | cut -d'"' -f4)
+            echo -e "\e[1;34m[调试]\e[0m 简单搜索结果: '$LATEST_BUILDID'"
+            
+            # 如果简单搜索失败，尝试原来的方法
+            if [ -z "$LATEST_BUILDID" ]; then
+                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"public":{"buildid":"[^"]*"' | sed 's/.*"buildid":"\([^"]*\)".*/\1/')
+                echo -e "\e[1;34m[调试]\e[0m 复杂搜索结果: '$LATEST_BUILDID'"
+            fi
             
             if [ ! -z "$LATEST_BUILDID" ]; then
                 echo -e "\e[1;32m[成功]\e[0m 通过SteamCMD.net API获取到构建ID: $LATEST_BUILDID"
@@ -48,19 +65,17 @@ echo -e "\e[1;33m[信息]\e[0m 检查幻兽帕鲁服务器更新..."
             fi
         else
             echo -e "\e[1;31m[错误]\e[0m API返回失败状态或未找到状态字段"
-            if [ "${DEBUG}" = "true" ]; then
-                echo -e "\e[1;34m[调试]\e[0m API状态: '$API_STATUS'"
-            fi
+            echo -e "\e[1;34m[调试]\e[0m API状态: '$API_STATUS'"
+            echo -e "\e[1;34m[调试]\e[0m 检查API响应中是否包含错误信息:"
+            echo "$API_RESPONSE" | grep -i "error\|fail\|invalid" || echo "未找到明显错误信息"
             LATEST_BUILDID=""
         fi
     else
         echo -e "\e[1;31m[错误]\e[0m SteamCMD.net API请求失败 (退出码: $CURL_EXIT_CODE)，尝试备用方法..."
-        LATEST_BUILDID=""
-    fi
-            LATEST_BUILDID=""
+        echo -e "\e[1;34m[调试]\e[0m API响应长度: ${#API_RESPONSE} 字符"
+        if [ ! -z "$API_RESPONSE" ]; then
+            echo -e "\e[1;34m[调试]\e[0m API响应前100字符: $(echo "$API_RESPONSE" | head -c 100)"
         fi
-    else
-        echo -e "\e[1;31m[错误]\e[0m SteamCMD.net API请求失败，尝试备用方法..."
         LATEST_BUILDID=""
     fi
 
@@ -82,6 +97,7 @@ echo -e "\e[1;33m[信息]\e[0m 检查幻兽帕鲁服务器更新..."
         echo -e "\e[1;31m[错误]\e[0m 无法获取最新构建ID"
         exit 1
     fi
+fi
 
 echo -e "\e[1;36m最新构建ID:\e[0m $LATEST_BUILDID"
 
