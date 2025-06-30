@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: palworld-server:latest
     container_name: palworld-server
     restart: unless-stopped
     ports:
