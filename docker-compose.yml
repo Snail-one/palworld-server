@@ -1,6 +1,6 @@
 services:
   palworld-server:
-    image: palworld-server:latest
+    image: ghcr.io/snail-one/palworld-server
     container_name: palworld-server
     restart: unless-stopped
     ports:
