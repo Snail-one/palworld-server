@@ -36,7 +36,7 @@ else
         echo -e "\e[1;34m[调试]\e[0m --- API响应结束 ---"
         
         # 检查API是否返回成功状态
-        API_STATUS=$(echo "$API_RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+        API_STATUS=$(echo "$API_RESPONSE" | grep -o '"status": *"[^"]*"' | sed 's/.*"status": *"\([^"]*\)".*/\1/')
         echo -e "\e[1;34m[调试]\e[0m API状态: '$API_STATUS'"
         
         # 检查是否包含数据（这个API没有status字段，直接检查是否有data字段）
@@ -47,29 +47,29 @@ else
             # 从JSON结构中提取构建ID：data.2394010.depots.branches.public.buildid
             echo -e "\e[1;34m[调试]\e[0m 尝试提取构建ID..."
             
-            # 方法1: 直接搜索buildid（应该能找到）
-            LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"buildid":"[^"]*"' | head -1 | cut -d'"' -f4)
+            # 方法1: 直接搜索buildid（考虑可能有空格）
+            LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"buildid": *"[^"]*"' | sed 's/.*"buildid": *"\([^"]*\)".*/\1/')
             echo -e "\e[1;34m[调试]\e[0m 方法1 - 直接搜索结果: '$LATEST_BUILDID'"
             
             # 方法2: 如果方法1失败，专门查找depots.branches.public结构
             if [ -z "$LATEST_BUILDID" ]; then
                 echo -e "\e[1;34m[调试]\e[0m 方法1失败，查找depots.branches.public结构..."
-                # 搜索 "depots":{...}"branches":{"public":{"buildid":"xxx"
-                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"depots":[^}]*"branches":[^}]*"public":[^}]*"buildid":"[^"]*"' | grep -o '"buildid":"[^"]*"' | cut -d'"' -f4)
+                # 搜索 "branches": {"public": {"buildid": "xxx"
+                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"branches": *{[^}]*"public": *{[^}]*"buildid": *"[^"]*"' | grep -o '"buildid": *"[^"]*"' | sed 's/.*"buildid": *"\([^"]*\)".*/\1/')
                 echo -e "\e[1;34m[调试]\e[0m 方法2 - depots.branches.public搜索结果: '$LATEST_BUILDID'"
             fi
             
             # 方法3: 更简单的branches搜索
             if [ -z "$LATEST_BUILDID" ]; then
                 echo -e "\e[1;34m[调试]\e[0m 方法2失败，尝试简单branches搜索..."
-                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"branches":[^}]*"buildid":"[^"]*"' | grep -o '"buildid":"[^"]*"' | cut -d'"' -f4)
+                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"branches": *{[^}]*"buildid": *"[^"]*"' | grep -o '"buildid": *"[^"]*"' | sed 's/.*"buildid": *"\([^"]*\)".*/\1/')
                 echo -e "\e[1;34m[调试]\e[0m 方法3 - 简单branches搜索结果: '$LATEST_BUILDID'"
             fi
             
             # 方法4: sed精确匹配
             if [ -z "$LATEST_BUILDID" ]; then
                 echo -e "\e[1;34m[调试]\e[0m 方法3失败，尝试sed精确匹配..."
-                LATEST_BUILDID=$(echo "$API_RESPONSE" | sed -n 's/.*"branches":[^}]*"public":[^}]*"buildid":"\([^"]*\)".*/\1/p')
+                LATEST_BUILDID=$(echo "$API_RESPONSE" | sed -n 's/.*"branches": *{[^}]*"public": *{[^}]*"buildid": *"\([^"]*\)".*/\1/p')
                 echo -e "\e[1;34m[调试]\e[0m 方法4 - sed匹配结果: '$LATEST_BUILDID'"
             fi
             
@@ -78,7 +78,7 @@ else
                 echo -e "\e[1;34m[调试]\e[0m 方法4失败，搜索JSON结尾部分..."
                 # 取JSON的后2000字符来搜索buildid
                 JSON_TAIL=$(echo "$API_RESPONSE" | tail -c 2000)
-                LATEST_BUILDID=$(echo "$JSON_TAIL" | grep -o '"buildid":"[^"]*"' | head -1 | cut -d'"' -f4)
+                LATEST_BUILDID=$(echo "$JSON_TAIL" | grep -o '"buildid": *"[^"]*"' | head -1 | sed 's/.*"buildid": *"\([^"]*\)".*/\1/')
                 echo -e "\e[1;34m[调试]\e[0m 方法5 - JSON结尾搜索结果: '$LATEST_BUILDID'"
             fi
             
@@ -87,7 +87,7 @@ else
             else
                 echo -e "\e[1;33m[警告]\e[0m API响应中未找到buildid，尝试提取时间戳作为版本标识..."
                 # 尝试提取更新时间作为版本标识
-                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"timeupdated":"[^"]*"' | head -1 | cut -d'"' -f4)
+                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"timeupdated": *"[^"]*"' | head -1 | sed 's/.*"timeupdated": *"\([^"]*\)".*/\1/')
                 if [ ! -z "$LATEST_BUILDID" ]; then
                     echo -e "\e[1;33m[信息]\e[0m 使用更新时间作为版本标识: $LATEST_BUILDID"
                 fi
