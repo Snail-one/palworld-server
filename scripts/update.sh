@@ -31,7 +31,7 @@ else
     if [ $CURL_EXIT_CODE -eq 0 ] && [ ! -z "$API_RESPONSE" ]; then
         # 打印API响应数据用于调试
         echo -e "\e[1;34m[调试]\e[0m API响应数据:"
-        echo "$API_RESPONSE" | head -c 500
+        echo "$API_RESPONSE" | head -c 1000
         echo ""
         echo -e "\e[1;34m[调试]\e[0m ..."
         
@@ -39,18 +39,30 @@ else
         API_STATUS=$(echo "$API_RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
         echo -e "\e[1;34m[调试]\e[0m API状态: '$API_STATUS'"
         
-        if [ "$API_STATUS" = "success" ]; then
-            # 从嵌套JSON结构中提取构建ID：data.2394010.depots.branches.public.buildid
+        # 检查是否包含数据（这个API没有status字段，直接检查是否有data字段）
+        HAS_DATA=$(echo "$API_RESPONSE" | grep -o '"data"' | head -1)
+        echo -e "\e[1;34m[调试]\e[0m 是否包含data字段: '$HAS_DATA'"
+        
+        if [ "$API_STATUS" = "success" ] || [ ! -z "$HAS_DATA" ]; then
+            # 从JSON结构中提取构建ID：data.2394010.depots.branches.public.buildid
             echo -e "\e[1;34m[调试]\e[0m 尝试提取构建ID..."
             
-            # 先尝试简单的搜索
+            # 方法1: 直接搜索buildid（应该能找到）
             LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"buildid":"[^"]*"' | head -1 | cut -d'"' -f4)
-            echo -e "\e[1;34m[调试]\e[0m 简单搜索结果: '$LATEST_BUILDID'"
+            echo -e "\e[1;34m[调试]\e[0m 方法1 - 直接搜索结果: '$LATEST_BUILDID'"
             
-            # 如果简单搜索失败，尝试原来的方法
+            # 方法2: 如果方法1失败，搜索branches部分
             if [ -z "$LATEST_BUILDID" ]; then
-                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"public":{"buildid":"[^"]*"' | sed 's/.*"buildid":"\([^"]*\)".*/\1/')
-                echo -e "\e[1;34m[调试]\e[0m 复杂搜索结果: '$LATEST_BUILDID'"
+                echo -e "\e[1;34m[调试]\e[0m 方法1失败，尝试搜索branches部分..."
+                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"branches":[^}]*"buildid":"[^"]*"' | grep -o '"buildid":"[^"]*"' | cut -d'"' -f4)
+                echo -e "\e[1;34m[调试]\e[0m 方法2 - branches搜索结果: '$LATEST_BUILDID'"
+            fi
+            
+            # 方法3: 更精确的sed匹配
+            if [ -z "$LATEST_BUILDID" ]; then
+                echo -e "\e[1;34m[调试]\e[0m 方法2失败，尝试sed匹配..."
+                LATEST_BUILDID=$(echo "$API_RESPONSE" | sed -n 's/.*"branches":[^}]*"public":[^}]*"buildid":"\([^"]*\)".*/\1/p')
+                echo -e "\e[1;34m[调试]\e[0m 方法3 - sed匹配结果: '$LATEST_BUILDID'"
             fi
             
             if [ ! -z "$LATEST_BUILDID" ]; then
