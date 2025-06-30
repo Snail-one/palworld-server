@@ -51,18 +51,26 @@ else
             LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"buildid":"[^"]*"' | head -1 | cut -d'"' -f4)
             echo -e "\e[1;34m[调试]\e[0m 方法1 - 直接搜索结果: '$LATEST_BUILDID'"
             
-            # 方法2: 如果方法1失败，搜索branches部分
+            # 方法2: 如果方法1失败，专门查找depots.branches.public结构
             if [ -z "$LATEST_BUILDID" ]; then
-                echo -e "\e[1;34m[调试]\e[0m 方法1失败，尝试搜索branches部分..."
-                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"branches":[^}]*"buildid":"[^"]*"' | grep -o '"buildid":"[^"]*"' | cut -d'"' -f4)
-                echo -e "\e[1;34m[调试]\e[0m 方法2 - branches搜索结果: '$LATEST_BUILDID'"
+                echo -e "\e[1;34m[调试]\e[0m 方法1失败，查找depots.branches.public结构..."
+                # 搜索 "depots":{...}"branches":{"public":{"buildid":"xxx"
+                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"depots":[^}]*"branches":[^}]*"public":[^}]*"buildid":"[^"]*"' | grep -o '"buildid":"[^"]*"' | cut -d'"' -f4)
+                echo -e "\e[1;34m[调试]\e[0m 方法2 - depots.branches.public搜索结果: '$LATEST_BUILDID'"
             fi
             
-            # 方法3: 更精确的sed匹配
+            # 方法3: 更简单的branches搜索
             if [ -z "$LATEST_BUILDID" ]; then
-                echo -e "\e[1;34m[调试]\e[0m 方法2失败，尝试sed匹配..."
+                echo -e "\e[1;34m[调试]\e[0m 方法2失败，尝试简单branches搜索..."
+                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"branches":[^}]*"buildid":"[^"]*"' | grep -o '"buildid":"[^"]*"' | cut -d'"' -f4)
+                echo -e "\e[1;34m[调试]\e[0m 方法3 - 简单branches搜索结果: '$LATEST_BUILDID'"
+            fi
+            
+            # 方法4: sed精确匹配
+            if [ -z "$LATEST_BUILDID" ]; then
+                echo -e "\e[1;34m[调试]\e[0m 方法3失败，尝试sed精确匹配..."
                 LATEST_BUILDID=$(echo "$API_RESPONSE" | sed -n 's/.*"branches":[^}]*"public":[^}]*"buildid":"\([^"]*\)".*/\1/p')
-                echo -e "\e[1;34m[调试]\e[0m 方法3 - sed匹配结果: '$LATEST_BUILDID'"
+                echo -e "\e[1;34m[调试]\e[0m 方法4 - sed匹配结果: '$LATEST_BUILDID'"
             fi
             
             if [ ! -z "$LATEST_BUILDID" ]; then
