@@ -20,21 +20,44 @@ echo -e "\e[1;33m[信息]\e[0m 检查幻兽帕鲁服务器更新..."
     # 使用curl获取API响应
     echo -e "\e[1;33m[信息]\e[0m 查询SteamCMD.net API..."
     API_RESPONSE=$(curl -s --connect-timeout 10 --max-time 30 "$API_URL")
+    CURL_EXIT_CODE=$?
 
     # 检查API响应是否成功
-    if [ $? -eq 0 ] && [ ! -z "$API_RESPONSE" ]; then
-        # 从JSON响应中提取构建ID
-        LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"buildid":"[^"]*"' | head -1 | cut -d'"' -f4)
+    if [ $CURL_EXIT_CODE -eq 0 ] && [ ! -z "$API_RESPONSE" ]; then
+        # 添加调试信息（仅在DEBUG模式下显示）
+        if [ "${DEBUG}" = "true" ]; then
+            echo -e "\e[1;34m[调试]\e[0m API响应: $(echo "$API_RESPONSE" | head -c 200)..."
+        fi
         
-        if [ ! -z "$LATEST_BUILDID" ]; then
-            echo -e "\e[1;32m[成功]\e[0m 通过SteamCMD.net API获取到构建ID"
-        else
-            echo -e "\e[1;33m[警告]\e[0m API响应中未找到buildid，尝试提取其他版本信息..."
-            # 尝试提取其他可能的版本标识
-            LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"timeupdated":"[^"]*"' | head -1 | cut -d'"' -f4)
+        # 检查API是否返回成功状态
+        API_STATUS=$(echo "$API_RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+        
+        if [ "$API_STATUS" = "success" ]; then
+            # 从嵌套JSON结构中提取构建ID：data.2394010.depots.branches.public.buildid
+            LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"public":{"buildid":"[^"]*"' | sed 's/.*"buildid":"\([^"]*\)".*/\1/')
+            
             if [ ! -z "$LATEST_BUILDID" ]; then
-                echo -e "\e[1;33m[信息]\e[0m 使用更新时间作为版本标识: $LATEST_BUILDID"
+                echo -e "\e[1;32m[成功]\e[0m 通过SteamCMD.net API获取到构建ID: $LATEST_BUILDID"
+            else
+                echo -e "\e[1;33m[警告]\e[0m API响应中未找到buildid，尝试提取时间戳作为版本标识..."
+                # 尝试提取更新时间作为版本标识
+                LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"timeupdated":"[^"]*"' | head -1 | cut -d'"' -f4)
+                if [ ! -z "$LATEST_BUILDID" ]; then
+                    echo -e "\e[1;33m[信息]\e[0m 使用更新时间作为版本标识: $LATEST_BUILDID"
+                fi
             fi
+        else
+            echo -e "\e[1;31m[错误]\e[0m API返回失败状态或未找到状态字段"
+            if [ "${DEBUG}" = "true" ]; then
+                echo -e "\e[1;34m[调试]\e[0m API状态: '$API_STATUS'"
+            fi
+            LATEST_BUILDID=""
+        fi
+    else
+        echo -e "\e[1;31m[错误]\e[0m SteamCMD.net API请求失败 (退出码: $CURL_EXIT_CODE)，尝试备用方法..."
+        LATEST_BUILDID=""
+    fi
+            LATEST_BUILDID=""
         fi
     else
         echo -e "\e[1;31m[错误]\e[0m SteamCMD.net API请求失败，尝试备用方法..."
