@@ -30,14 +30,6 @@ else
     fi
 fi
 
-# 设置备份任务
-if [ "${ENABLE_BACKUPS}" = "true" ]; then
-    echo -e "\e[1;33m[信息]\e[0m 设置自动备份..."
-    /scripts/setup_backup.sh
-else
-    echo -e "\e[1;33m[信息]\e[0m 自动备份功能已禁用"
-fi
-
 # 设置服务器配置
 echo -e "\e[1;33m[信息]\e[0m 检查服务器配置..."
 /scripts/setup_config.sh

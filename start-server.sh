@@ -27,7 +27,7 @@ if ! command -v docker-compose &> /dev/null; then
 fi
 
 # 创建目录
-mkdir -p server-data backups
+mkdir -p server-data
 
 echo -e "\e[1;33m[信息]\e[0m 启动幻兽帕鲁服务器..."
 docker-compose up -d

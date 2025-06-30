@@ -23,21 +23,6 @@ if pgrep -f "PalServer-Linux" > /dev/null; then
     # 显示磁盘使用情况
     DISK_USAGE=$(df -h ${SERVER_DIR} | tail -n 1 | awk '{print $5}')
     echo -e "\e[1;36m磁盘使用率:\e[0m $DISK_USAGE"
-    
-    # 显示备份信息
-    BACKUP_COUNT=$(find ${BACKUP_DIR} -name "palworld_*.tar.gz" | wc -l)
-    LATEST_BACKUP=$(find ${BACKUP_DIR} -name "palworld_*.tar.gz" -type f -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
-    
-    if [ ! -z "$LATEST_BACKUP" ]; then
-        BACKUP_TIME=$(stat -c %y "$LATEST_BACKUP" | cut -d. -f1)
-        BACKUP_SIZE=$(du -h "$LATEST_BACKUP" | cut -f1)
-        echo -e "\e[1;36m备份数量:\e[0m $BACKUP_COUNT"
-        echo -e "\e[1;36m最新备份:\e[0m $(basename "$LATEST_BACKUP")"
-        echo -e "\e[1;36m备份时间:\e[0m $BACKUP_TIME"
-        echo -e "\e[1;36m备份大小:\e[0m $BACKUP_SIZE"
-    else
-        echo -e "\e[1;33m[警告]\e[0m 尚未创建备份"
-    fi
 else
     echo -e "\e[1;31m[状态]\e[0m 服务器未运行"
 fi 

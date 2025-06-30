@@ -3,44 +3,71 @@
 echo -e "\e[1;33m[信息]\e[0m 检查幻兽帕鲁服务器更新..."
 
 # 获取当前安装的构建ID
-if [ -f "${SERVER_DIR}/steamapps/appmanifest_${GAME_ID}.acf" ]; then
-    CURRENT_BUILDID=$(grep -oP '"buildid"\s*"\K[^"]+' ${SERVER_DIR}/steamapps/appmanifest_${GAME_ID}.acf)
-    echo -e "\e[1;36m当前构建ID:\e[0m $CURRENT_BUILDID"
-else
-    echo -e "\e[1;31m[警告]\e[0m 无法获取当前构建ID，将尝试强制更新"
-    CURRENT_BUILDID=0
-fi
+    if [ -f "${SERVER_DIR}/steamapps/appmanifest_${GAME_ID}.acf" ]; then
+        CURRENT_BUILDID=$(grep -oP '"buildid"\s*"\K[^"]+' ${SERVER_DIR}/steamapps/appmanifest_${GAME_ID}.acf)
+        echo -e "\e[1;36m当前构建ID:\e[0m $CURRENT_BUILDID"
+    else
+        echo -e "\e[1;31m[警告]\e[0m 无法获取当前构建ID，将尝试强制更新"
+        CURRENT_BUILDID=0
+    fi
 
-# 获取最新构建ID增加30秒时间限制
-echo -e "\e[1;33m[信息]\e[0m 获取最新构建ID..."
+    # 使用SteamCMD.net API获取最新构建ID
+    echo -e "\e[1;33m[信息]\e[0m 获取最新构建ID..."
 
-# 使用 timeout 防止 steamcmd 卡死
-timeout 30s ${STEAMCMD_DIR}/steamcmd.sh +login anonymous +app_info_update 1 +app_info_print ${GAME_ID} +quit > /tmp/app_info.txt
+    # 使用SteamCMD.net API
+    API_URL="https://api.steamcmd.net/v1/info/${GAME_ID}"
 
-# 检查是否成功执行
-if [ $? -ne 0 ]; then
-    echo -e "\e[1;31m[错误]\e[0m 获取最新构建ID失败（可能超时或 steamcmd 出错）"
-    exit 1
-fi
+    # 使用curl获取API响应
+    echo -e "\e[1;33m[信息]\e[0m 查询SteamCMD.net API..."
+    API_RESPONSE=$(curl -s --connect-timeout 10 --max-time 30 "$API_URL")
 
-# 提取构建 ID
-LATEST_BUILDID=$(grep -oP '"buildid"\s*"\K[^"]+' /tmp/app_info.txt | head -1)
+    # 检查API响应是否成功
+    if [ $? -eq 0 ] && [ ! -z "$API_RESPONSE" ]; then
+        # 从JSON响应中提取构建ID
+        LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"buildid":"[^"]*"' | head -1 | cut -d'"' -f4)
+        
+        if [ ! -z "$LATEST_BUILDID" ]; then
+            echo -e "\e[1;32m[成功]\e[0m 通过SteamCMD.net API获取到构建ID"
+        else
+            echo -e "\e[1;33m[警告]\e[0m API响应中未找到buildid，尝试提取其他版本信息..."
+            # 尝试提取其他可能的版本标识
+            LATEST_BUILDID=$(echo "$API_RESPONSE" | grep -o '"timeupdated":"[^"]*"' | head -1 | cut -d'"' -f4)
+            if [ ! -z "$LATEST_BUILDID" ]; then
+                echo -e "\e[1;33m[信息]\e[0m 使用更新时间作为版本标识: $LATEST_BUILDID"
+            fi
+        fi
+    else
+        echo -e "\e[1;31m[错误]\e[0m SteamCMD.net API请求失败，尝试备用方法..."
+        LATEST_BUILDID=""
+    fi
 
-# 检查提取是否成功
-if [ -z "$LATEST_BUILDID" ]; then
-    echo -e "\e[1;31m[错误]\e[0m 未能从 app_info.txt 中提取构建ID"
-    exit 1
-fi
+    # 如果API失败，使用原来的SteamCMD方法作为备用
+    if [ -z "$LATEST_BUILDID" ]; then
+        echo -e "\e[1;33m[信息]\e[0m 使用SteamCMD备用方法..."
+        timeout 30s ${STEAMCMD_DIR}/steamcmd.sh +login anonymous +app_info_update 1 +app_info_print ${GAME_ID} +quit > /tmp/app_info.txt
+        
+        if [ $? -eq 0 ]; then
+            LATEST_BUILDID=$(grep -oP '"buildid"\s*"\K[^"]+' /tmp/app_info.txt | head -1)
+            if [ ! -z "$LATEST_BUILDID" ]; then
+                echo -e "\e[1;32m[成功]\e[0m 通过SteamCMD获取到构建ID"
+            fi
+        fi
+    fi
+
+    # 最终检查
+    if [ -z "$LATEST_BUILDID" ]; then
+        echo -e "\e[1;31m[错误]\e[0m 无法获取最新构建ID"
+        exit 1
+    fi
 
 echo -e "\e[1;36m最新构建ID:\e[0m $LATEST_BUILDID"
 
-# 检查是否需要更新
-if [ "$CURRENT_BUILDID" != "$LATEST_BUILDID" ]; then
-    echo -e "\e[1;33m[信息]\e[0m 发现新版本，开始更新..."
-    
-    # 备份当前服务器数据
-    echo -e "\e[1;33m[信息]\e[0m 备份当前服务器数据..."
-    /scripts/backup.sh pre-update
+if [ "$CURRENT_BUILDID" != "$LATEST_BUILDID" ] || [ "${FORCE_UPDATE_ON_START}" = "true" ]; then
+    if [ "${FORCE_UPDATE_ON_START}" = "true" ]; then
+        echo -e "\e[1;33m[信息]\e[0m 强制更新模式：开始更新服务器..."
+    else
+        echo -e "\e[1;33m[信息]\e[0m 发现新版本，开始更新..."
+    fi
     
     # 更新服务器
     ${STEAMCMD_DIR}/steamcmd.sh +force_install_dir ${SERVER_DIR} +login anonymous +app_update ${GAME_ID} validate +quit

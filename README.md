@@ -1,11 +1,10 @@
 # 幻兽帕鲁专用服务器 Docker 容器
 
-这是一个用于运行幻兽帕鲁（Palworld）专用服务器的Docker容器。这个容器基于Ubuntu，并包含了多种功能，如自动备份、配置文件管理等。
+这是一个用于运行幻兽帕鲁（Palworld）专用服务器的Docker容器。这个容器基于Ubuntu，并包含了多种功能，如配置文件管理等。
 
 ## 特性
 
 - 非root用户运行，避免权限问题
-- 自动备份系统
 - 支持RCON远程管理
 - 容器启动时自动检查更新
 - 自动复制官方配置文件
@@ -58,25 +57,10 @@ docker-compose logs -f
 - `PUBLIC_LOBBY`: 是否为社区服务器 (默认: false)
 - `WORKER_THREADS`: 工作线程数，留空为自动
 
-#### 备份相关
-- `ENABLE_BACKUPS`: 是否启用自动备份 (默认: true)
-- `BACKUP_INTERVAL`: 备份间隔小时数 (默认: 6)
-- `BACKUP_RETENTION`: 保留备份数量 (默认: 10)
-- `BACKUP_ON_STOP`: 停止时是否备份 (默认: true)
-
 #### 更新与配置相关
 - `CHECK_UPDATE`: 启动时是否检查更新 (默认: true)
 - `CHECK_UPDATE_ON_RESTART`: 重启时是否检查更新 (默认: true)
 - `SKIP_CONFIG_WAIT`: 是否跳过配置等待 (默认: false)，设为true时将自动使用官方配置文件并跳过等待确认步骤
-
-## 备份
-
-备份文件保存在`./backups`目录中。备份包括：
-
-- 自动备份（根据`BACKUP_INTERVAL`设置）
-- 每日备份（每天0点）
-- 每周备份（每周日0点）
-- 手动备份（当你执行备份命令时）
 
 ## 停止服务器
 
@@ -92,8 +76,7 @@ docker-compose down
 
 - 🐳 **Docker容器化**：简化部署和管理
 - 🔄 **自动更新**：保持服务器版本最新
-- 💾 **自动备份**：定期备份游戏数据
-- 🖥️ **美观的终端界面**：彩色文本和ASCII艺术
+- ️ **美观的终端界面**：彩色文本和ASCII艺术
 - 📊 **状态监控**：查看服务器运行状态和资源使用情况
 - 📝 **详细日志**：提供服务器运行日志记录
 - ✅ **官方兼容**：仅使用官方文档提供的启动参数
@@ -167,12 +150,6 @@ docker exec -it palworld-server /scripts/stop.sh
 docker exec -it palworld-server /scripts/restart.sh
 ```
 
-### 手动备份
-
-```bash
-docker exec -it palworld-server /scripts/backup.sh manual
-```
-
 ### 更新服务器
 
 ```bash
@@ -193,14 +170,9 @@ docker exec -it palworld-server /scripts/update.sh
 | RCON_ENABLED | RCON是否启用 | true |
 | RCON_PORT | RCON端口 | 25575 |
 | CHECK_UPDATE | 启动时检查更新 | true |
-| ENABLE_BACKUPS | 启用自动备份 | true |
-| BACKUP_INTERVAL | 备份间隔（小时） | 6 |
-| BACKUP_RETENTION | 备份保留数量 | 10 |
-| BACKUP_ON_STOP | 停止时备份 | true |
 | CHECK_UPDATE_ON_RESTART | 重启时检查更新 | true |
 | SKIP_CONFIG_WAIT | 是否跳过配置等待 | false |
 | SERVER_DIR | 服务器数据目录路径 | /palworld-server |
-| BACKUP_DIR | 备份目录路径 | /backups |
 | GAME_ID | 幻兽帕鲁服务器的Steam应用ID | 2394010 |
 | STEAMCMD_DIR | SteamCMD安装目录 | /steamcmd |
 
@@ -222,7 +194,6 @@ docker exec -it palworld-server /scripts/update.sh
 ## 数据卷
 
 - `./server-data:/palworld-server`: 服务器数据目录
-- `./backups:/backups`: 备份目录
 
 ## 端口
 

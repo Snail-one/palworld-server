@@ -25,33 +25,10 @@ if [ "${CONFIG_CONFIRMED}" = "false" ] || [ ! -f "${DEFAULT_CONFIG}" ]; then
     # 确保官方配置文件存在
     if [ ! -f "${OFFICIAL_CONFIG}" ]; then
         echo -e "\e[1;33m[信息]\e[0m 寻找官方配置文件..."
-        # 寻找可能的官方配置文件位置
-        POTENTIAL_PATHS=(
-            "${SERVER_DIR}/DefaultPalWorldSettings.ini"
-            "${SERVER_DIR}/Pal/Config/DefaultPalWorldSettings.ini"
-            "${SERVER_DIR}/Pal/Content/Configs/DefaultPalWorldSettings.ini"
-            "${SERVER_DIR}/Pal/Content/Config/DefaultPalWorldSettings.ini"
-            "${SERVER_DIR}/Engine/Config/DefaultPalWorldSettings.ini"
-            "${SERVER_DIR}/PalServer/Saved/Config/LinuxServer/DefaultPalWorldSettings.ini"
-            "${SERVER_DIR}/Saved/Config/LinuxServer/DefaultPalWorldSettings.ini"
-        )
-        
-        for path in "${POTENTIAL_PATHS[@]}"; do
-            if [ -f "$path" ]; then
-                OFFICIAL_CONFIG="$path"
-                echo -e "\e[1;32m[成功]\e[0m 找到官方配置文件: $OFFICIAL_CONFIG"
-                break
-            fi
-        done
-        
-        # 如果仍未找到，则尝试在整个服务器目录中查找
-        if [ ! -f "${OFFICIAL_CONFIG}" ]; then
-            echo -e "\e[1;33m[信息]\e[0m 在整个服务器目录中搜索配置文件..."
-            FOUND_CONFIG=$(find ${SERVER_DIR} -name "*PalWorldSettings*.ini" -type f | grep -v "Saved" | head -n 1)
-            if [ ! -z "$FOUND_CONFIG" ]; then
-                OFFICIAL_CONFIG="$FOUND_CONFIG"
-                echo -e "\e[1;32m[成功]\e[0m 找到官方配置文件: $OFFICIAL_CONFIG"
-            fi
+        # 简化的查找逻辑，只查找最常见的位置
+        if [ -f "${SERVER_DIR}/DefaultPalWorldSettings.ini" ]; then
+            OFFICIAL_CONFIG="${SERVER_DIR}/DefaultPalWorldSettings.ini"
+            echo -e "\e[1;32m[成功]\e[0m 找到官方配置文件: $OFFICIAL_CONFIG"
         fi
     fi
     
