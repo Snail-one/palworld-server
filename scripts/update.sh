@@ -29,11 +29,11 @@ else
 
     # 检查API响应是否成功
     if [ $CURL_EXIT_CODE -eq 0 ] && [ ! -z "$API_RESPONSE" ]; then
-        # 打印API响应数据用于调试
-        echo -e "\e[1;34m[调试]\e[0m API响应数据:"
-        echo "$API_RESPONSE" | head -c 1000
-        echo ""
-        echo -e "\e[1;34m[调试]\e[0m ..."
+        # 显示完整的API响应数据
+        echo -e "\e[1;34m[调试]\e[0m API响应数据长度: ${#API_RESPONSE} 字符"
+        echo -e "\e[1;34m[调试]\e[0m 完整API响应:"
+        echo "$API_RESPONSE"
+        echo -e "\e[1;34m[调试]\e[0m --- API响应结束 ---"
         
         # 检查API是否返回成功状态
         API_STATUS=$(echo "$API_RESPONSE" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
@@ -71,6 +71,15 @@ else
                 echo -e "\e[1;34m[调试]\e[0m 方法3失败，尝试sed精确匹配..."
                 LATEST_BUILDID=$(echo "$API_RESPONSE" | sed -n 's/.*"branches":[^}]*"public":[^}]*"buildid":"\([^"]*\)".*/\1/p')
                 echo -e "\e[1;34m[调试]\e[0m 方法4 - sed匹配结果: '$LATEST_BUILDID'"
+            fi
+            
+            # 方法5: 搜索JSON结尾部分（buildid通常在后面）
+            if [ -z "$LATEST_BUILDID" ]; then
+                echo -e "\e[1;34m[调试]\e[0m 方法4失败，搜索JSON结尾部分..."
+                # 取JSON的后2000字符来搜索buildid
+                JSON_TAIL=$(echo "$API_RESPONSE" | tail -c 2000)
+                LATEST_BUILDID=$(echo "$JSON_TAIL" | grep -o '"buildid":"[^"]*"' | head -1 | cut -d'"' -f4)
+                echo -e "\e[1;34m[调试]\e[0m 方法5 - JSON结尾搜索结果: '$LATEST_BUILDID'"
             fi
             
             if [ ! -z "$LATEST_BUILDID" ]; then
