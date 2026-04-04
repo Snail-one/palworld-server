@@ -10,7 +10,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     STEAMCMD_DIR=/steamcmd \
     GAME_ID=2394010 \
     GAME_PORT=8211 \
-    QUERY_PORT=27015 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
     LC_ALL=en_US.UTF-8
@@ -61,7 +60,7 @@ RUN ln -sf /scripts/update.sh /usr/local/bin/update && \
     chmod +x /usr/local/bin/status
 
 # 暴露端口
-EXPOSE ${GAME_PORT}/udp ${QUERY_PORT}/udp
+EXPOSE ${GAME_PORT}/udp
 
 # 创建卷
 VOLUME ["${SERVER_DIR}"]

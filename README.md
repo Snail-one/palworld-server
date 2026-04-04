@@ -11,7 +11,7 @@
 - 📊 **状态监控**：实时查看服务器运行状态
 - ✅ **官方兼容**：严格遵循官方启动参数规范
 
-## � 快速开始
+## 快速开始
 
 ### 系统要求
 
@@ -173,7 +173,6 @@ status  # 查看状态
 | 端口 | 协议 | 描述 |
 |------|------|------|
 | `8211` | UDP | 游戏主端口 |
-| `27015` | UDP | 查询端口 |
 
 ## 🔧 故障排除
 
@@ -200,7 +199,6 @@ docker exec -it palworld-server status
 
 # 2. 检查防火墙设置
 sudo ufw allow 8211/udp
-sudo ufw allow 27015/udp
 
 # 3. 验证网络配置
 docker port palworld-server
@@ -251,10 +249,6 @@ docker build -t palworld-server .
 3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启 Pull Request
-
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
 ## 📞 技术支持
 

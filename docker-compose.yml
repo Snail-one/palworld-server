@@ -5,7 +5,6 @@ services:
     restart: unless-stopped
     ports:
       - "8211:8211/udp"  # 游戏端口
-      - "27015:27015/udp"  # 查询端口
     environment:
       # 官方启动参数 (在scripts/start.sh中实际使用)
       - SERVER_PORT=8211  # 服务器端口 (-port=8211)
