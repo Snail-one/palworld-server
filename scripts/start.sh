@@ -22,6 +22,6 @@ if [ -n "$LOG_FORMAT" ]; then STARTUP_ARGS="$STARTUP_ARGS -logformat=$LOG_FORMAT
 
 echo -e "\e[1;33m[信息]\e[0m 启动服务器: port=${SERVER_PORT}, players=${MAX_PLAYERS}, lobby=${PUBLIC_LOBBY}, log=${LOG_FORMAT}"
 cd "${SERVER_DIR}"
-mkdir -p ${SERVER_DIR}/Logs
+mkdir -p "${SERVER_DIR}/Logs"
 echo -e "\e[1;33m[信息]\e[0m 启动参数: $STARTUP_ARGS"
 ./PalServer.sh $STARTUP_ARGS 

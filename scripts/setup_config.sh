@@ -14,7 +14,7 @@ OFFICIAL_CONFIG="${SERVER_DIR}/DefaultPalWorldSettings.ini"
 SKIP_CONFIG_WAIT=${SKIP_CONFIG_WAIT:-"false"}
 
 # 确保配置目录存在
-mkdir -p ${CONFIG_DIR}
+mkdir -p "${CONFIG_DIR}"
 
 # 检查配置是否已确认
 CONFIG_CONFIRMED="false"

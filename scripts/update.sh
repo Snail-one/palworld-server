@@ -10,7 +10,7 @@ if [ "${FORCE_UPDATE_ON_START}" = "true" ]; then
     LATEST_BUILDID="update"
 else
     if [ -f "${SERVER_DIR}/steamapps/appmanifest_${GAME_ID}.acf" ]; then
-        CURRENT_BUILDID=$(grep -oP '"buildid"\s*"\K[^"]+' ${SERVER_DIR}/steamapps/appmanifest_${GAME_ID}.acf)
+        CURRENT_BUILDID=$(grep -oP '"buildid"\s*"\K[^"]+' "${SERVER_DIR}/steamapps/appmanifest_${GAME_ID}.acf")
         echo -e "\e[1;36m当前构建ID:\e[0m $CURRENT_BUILDID"
     else
         echo -e "\e[1;31m[警告]\e[0m 无法获取当前构建ID，将尝试强制更新"
@@ -65,9 +65,7 @@ else
 
     if [ -z "$LATEST_BUILDID" ]; then
         echo -e "\e[1;33m[信息]\e[0m 使用SteamCMD备用方法..."
-        timeout 30s ${STEAMCMD_DIR}/steamcmd.sh +login anonymous +app_info_update 1 +app_info_print ${GAME_ID} +quit > /tmp/app_info.txt
-        
-        if [ $? -eq 0 ]; then
+        if timeout 30s "${STEAMCMD_DIR}/steamcmd.sh" +login anonymous +app_info_update 1 +app_info_print "${GAME_ID}" +quit > /tmp/app_info.txt; then
             LATEST_BUILDID=$(grep -oP '"buildid"\s*"\K[^"]+' /tmp/app_info.txt | head -1)
             if [ -n "$LATEST_BUILDID" ]; then
                 echo -e "\e[1;32m[成功]\e[0m 通过SteamCMD获取到构建ID"
@@ -90,11 +88,9 @@ if [ "$CURRENT_BUILDID" != "$LATEST_BUILDID" ] || [ "${FORCE_UPDATE_ON_START}" =
         echo -e "\e[1;33m[信息]\e[0m 发现新版本，开始更新..."
     fi
     
-    ${STEAMCMD_DIR}/steamcmd.sh +force_install_dir ${SERVER_DIR} +login anonymous +app_update ${GAME_ID} validate +quit
-    
-    if [ $? -eq 0 ]; then
+    if "${STEAMCMD_DIR}/steamcmd.sh" +force_install_dir "${SERVER_DIR}" +login anonymous +app_update "${GAME_ID}" validate +quit; then
         echo -e "\e[1;32m[成功]\e[0m 服务器更新完成！"
-        chmod +x ${SERVER_DIR}/PalServer.sh
+        chmod +x "${SERVER_DIR}/PalServer.sh"
     else
         echo -e "\e[1;31m[错误]\e[0m 服务器更新失败！"
         exit 1
