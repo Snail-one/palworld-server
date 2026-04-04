@@ -39,7 +39,7 @@ if [ "${CONFIG_CONFIRMED}" = "false" ] || [ ! -f "${DEFAULT_CONFIG}" ]; then
     fi
 
     if [ ! -f "${CONFIG_CONFIRMED_FILE}" ] || [ "${CONFIG_CONFIRMED}" != "true" ]; then
-        cat > ${CONFIG_CONFIRMED_FILE} << EOF
+        cat > "${CONFIG_CONFIRMED_FILE}" << EOF
 # 幻兽帕鲁服务器配置确认文件
 # 如果您已经确认了服务器配置，请将下面的值修改为 true
 # 每次修改服务器配置后，您需要将此值重新设置为 true
