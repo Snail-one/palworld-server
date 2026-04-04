@@ -21,7 +21,7 @@ else
 fi
 
 # 创建目录
-mkdir -p palworld
+mkdir -p 777 palworld
 
 echo -e "\e[1;33m[信息]\e[0m 启动幻兽帕鲁服务器..."
 "${DOCKER_COMPOSE_CMD[@]}" up -d
