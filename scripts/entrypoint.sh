@@ -4,6 +4,19 @@ set -euo pipefail
 
 echo -e "\e[1;32m[信息]\e[0m 初始化幻兽帕鲁服务器..."
 
+if [ ! -d "${SERVER_DIR}" ]; then
+    echo -e "\e[1;31m[错误]\e[0m 服务器数据目录不存在: ${SERVER_DIR}"
+    exit 1
+fi
+
+WRITE_TEST_FILE="${SERVER_DIR}/.write-test.$$"
+if ! touch "${WRITE_TEST_FILE}" 2>/dev/null; then
+    echo -e "\e[1;31m[错误]\e[0m 服务器数据目录不可写: ${SERVER_DIR}"
+    echo -e "\e[1;33m[信息]\e[0m 请检查挂载目录权限，确保容器用户可以写入该目录"
+    exit 1
+fi
+rm -f "${WRITE_TEST_FILE}"
+
 # 检查服务器安装
 if [ ! -f "${SERVER_DIR}/PalServer.sh" ]; then
     echo -e "\e[1;33m[信息]\e[0m 服务器未安装，开始安装..."
