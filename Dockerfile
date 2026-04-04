@@ -1,5 +1,5 @@
-# 使用 Ubuntu 作为基础镜像
-FROM ubuntu:latest
+# 使用固定版本的 Ubuntu 作为基础镜像
+FROM ubuntu:24.04
 
 # 维护者信息
 LABEL maintainer="palworld-server-admin@example.com"
@@ -58,7 +58,7 @@ RUN chmod +x /scripts/*.sh && \
 RUN ln -sf /scripts/update.sh /usr/local/bin/update && \
     ln -sf /scripts/status.sh /usr/local/bin/status && \
     chmod +x /usr/local/bin/update && \
-    chmod +x /usr/local/bin/status  
+    chmod +x /usr/local/bin/status
 
 # 暴露端口
 EXPOSE ${GAME_PORT}/udp ${QUERY_PORT}/udp
@@ -68,6 +68,8 @@ VOLUME ["${SERVER_DIR}"]
 
 # 切换到非root用户
 USER palworld
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 CMD ["/scripts/status.sh"]
 
 # 设置容器入口点
 ENTRYPOINT ["/scripts/entrypoint.sh"]

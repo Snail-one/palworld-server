@@ -1,0 +1,49 @@
+name: CI Checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+      - 'start-server.sh'
+      - 'stop-server.sh'
+      - 'scripts/**'
+      - '.github/workflows/ci.yml'
+
+jobs:
+  shell-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Validate Bash syntax
+        run: |
+          bash -n start-server.sh
+          bash -n stop-server.sh
+          for script in scripts/*.sh; do
+            bash -n "$script"
+          done
+
+      - name: Run ShellCheck
+        run: shellcheck start-server.sh stop-server.sh scripts/*.sh
+
+  docker-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate Compose configuration
+        run: docker compose config
+
+      - name: Build Docker image
+        run: docker build -t palworld-server:ci .

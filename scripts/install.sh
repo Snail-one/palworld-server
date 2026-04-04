@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 echo -e "\e[1;33m[信息]\e[0m 开始安装幻兽帕鲁服务器..."
 
 # 安装SteamCMD

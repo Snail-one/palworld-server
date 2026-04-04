@@ -7,17 +7,15 @@
 - 🐳 **容器化部署**：基于Docker的现代化部署方式
 - 🔄 **智能更新**：自动检查游戏版本并更新到最新版本
 - 🛡️ **安全运行**：非root用户运行，保障系统安全
-- 🎮 **RCON支持**：内置远程控制台管理功能
 - ⚙️ **配置管理**：自动处理官方配置文件
 - 📊 **状态监控**：实时查看服务器运行状态
-- 🎨 **美观界面**：彩色终端输出，提升使用体验
 - ✅ **官方兼容**：严格遵循官方启动参数规范
 
 ## � 快速开始
 
 ### 系统要求
 
-- Docker 和 Docker Compose
+- Docker 和 Docker Compose（支持 `docker compose` 或 `docker-compose`）
 - 至少 4GB RAM
 - 至少 10GB 可用磁盘空间
 - 稳定的网络连接
@@ -25,14 +23,14 @@
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/your-username/palworld-docker.git
-cd palworld-docker
+git clone git@github.com:Snail-one/palworld-server.git
+cd palworld-server
 ```
 
 ### 2. 启动服务器
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 或使用便捷脚本：
@@ -55,10 +53,12 @@ docker logs -f palworld-server
 3. 等待用户确认配置（最多5分钟）
 4. 启动游戏服务器
 
+如果安装完成后缺少官方默认配置文件，容器会直接报错退出，避免生成过时的本地模板配置。
+
 #### 配置确认步骤
 
-1. 编辑游戏配置：`./server-data/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini`
-2. 修改确认文件：`./server-data/Pal/Saved/Config/LinuxServer/ConfigConfirmed.ini`
+1. 编辑游戏配置：`./palworld/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini`
+2. 修改确认文件：`./palworld/Pal/Saved/Config/LinuxServer/ConfigConfirmed.ini`
 3. 将 `CONFIG_CONFIRMED=false` 改为 `CONFIG_CONFIRMED=true`
 
 > 💡 **提示**：设置 `SKIP_CONFIG_WAIT=true` 可跳过配置等待，直接使用默认配置启动
@@ -79,12 +79,8 @@ docker logs -f palworld-server
 | `PUBLIC_LOBBY` | 社区服务器模式 | `false` | `true` |
 | `WORKER_THREADS` | 工作线程数 | 自动检测 | `4` |
 | `LOG_FORMAT` | 日志格式 | `text` | `json` |
-| **RCON远程控制** |
-| `RCON_ENABLED` | 启用RCON | `true` | `false` |
-| `RCON_PORT` | RCON端口 | `25575` | `25575` |
 | **更新管理** |
 | `CHECK_UPDATE` | 启动时检查更新 | `true` | `false` |
-| `CHECK_UPDATE_ON_RESTART` | 重启时检查更新 | `true` | `false` |
 | `FORCE_UPDATE_ON_START` | 每次启动强制更新 | `false` | `true` |
 | **高级设置** |
 | `SKIP_CONFIG_WAIT` | 跳过配置等待 | `false` | `true` |
@@ -110,16 +106,16 @@ environment:
 
 ```bash
 # 启动服务器
-docker-compose up -d
+docker compose up -d
 
 # 停止服务器
-docker-compose down
+docker compose down
 
 # 查看日志
-docker-compose logs -f
+docker compose logs -f
 
 # 重启服务器
-docker-compose restart
+docker compose restart
 ```
 
 ### 容器内管理命令
@@ -131,10 +127,8 @@ docker-compose restart
 docker exec -it palworld-server bash
 
 # 管理命令
-restart  # 重启服务器
-stop     # 停止服务器  
-update   # 更新服务器
-status   # 查看状态
+update  # 检查并更新服务器
+status  # 查看状态
 ```
 
 ### 便捷脚本
@@ -170,7 +164,7 @@ status   # 查看状态
 
 | 容器路径 | 主机路径 | 描述 |
 |----------|----------|------|
-| `/palworld-server` | `./server-data` | 服务器数据目录 |
+| `/palworld-server` | `./palworld` | 服务器数据目录 |
 
 ### 网络端口
 
@@ -178,7 +172,6 @@ status   # 查看状态
 |------|------|------|
 | `8211` | UDP | 游戏主端口 |
 | `27015` | UDP | 查询端口 |
-| `25575` | TCP | RCON端口（可选） |
 
 ## 🔧 故障排除
 
@@ -236,15 +229,20 @@ docker exec -it palworld-server update
 3. **检查配置文件**：
    ```bash
    # 查看游戏配置
-   cat ./server-data/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini
+   cat ./palworld/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini
    
    # 查看配置确认状态
-   cat ./server-data/Pal/Saved/Config/LinuxServer/ConfigConfirmed.ini
+   cat ./palworld/Pal/Saved/Config/LinuxServer/ConfigConfirmed.ini
    ```
 
 ## 🤝 贡献指南
 
-欢迎提交问题和改进建议！
+欢迎提交问题和改进建议。提交前建议先运行一次：
+
+```bash
+docker compose config
+docker build -t palworld-server .
+```
 
 1. Fork 本仓库
 2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
@@ -258,9 +256,9 @@ docker exec -it palworld-server update
 
 ## 📞 技术支持
 
-- 🐛 问题反馈：[GitHub Issues](https://github.com/your-username/palworld-docker/issues)
+- 🐛 问题反馈：[GitHub Issues](https://github.com/Snail-one/palworld-server/issues)
 - 📖 官方文档：[Palworld 官方文档](https://docs.palworldgame.com/)
-- 💬 社区讨论：[GitHub Discussions](https://github.com/your-username/palworld-docker/discussions)
+- 💬 社区讨论：[GitHub Discussions](https://github.com/Snail-one/palworld-server/discussions)
 
 ---
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 echo -e "\e[1;33m==== 幻兽帕鲁服务器状态 ====\e[0m"
 
 # 检查服务器进程
@@ -7,7 +9,7 @@ if pgrep -f "PalServer-Linux" > /dev/null; then
     echo -e "\e[1;32m[状态]\e[0m 服务器正在运行"
     
     # 获取进程ID
-    PID=$(pgrep -f "PalServer-Linux")
+    PID=$(pgrep -f "PalServer-Linux" | head -n 1)
     echo -e "\e[1;36m进程ID:\e[0m $PID"
     
     # 获取运行时间
@@ -25,4 +27,5 @@ if pgrep -f "PalServer-Linux" > /dev/null; then
     echo -e "\e[1;36m磁盘使用率:\e[0m $DISK_USAGE"
 else
     echo -e "\e[1;31m[状态]\e[0m 服务器未运行"
+    exit 1
 fi 

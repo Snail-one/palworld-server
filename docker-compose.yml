@@ -15,14 +15,9 @@ services:
       - PUBLIC_LOBBY=false  # 是否为社区服务器 (-publiclobby)
       - WORKER_THREADS=  # 工作线程数，留空为自动 (-NumberOfWorkerThreadsServer=X)
       - LOG_FORMAT=text  # 日志格式：text或json (-logformat=text)
-      
-      # RCON相关参数 (在stop.sh中使用)
-      - RCON_ENABLED=true  # RCON是否启用
-      - RCON_PORT=25575  # RCON端口
-      
+
       # 容器管理参数 (entrypoint.sh和其他脚本中使用)
       - CHECK_UPDATE=true  # 启动时检查更新
-      - CHECK_UPDATE_ON_RESTART=true  # 重启时检查更新
       - FORCE_UPDATE_ON_START=false  # 每次启动都强制更新（跳过版本检查）
       - SKIP_CONFIG_WAIT=false  # 是否跳过配置等待
       
@@ -38,3 +33,9 @@ services:
     tty: true
     stdin_open: true 
     mem_limit: 8g
+    healthcheck:
+      test: [ "CMD", "/scripts/status.sh" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s

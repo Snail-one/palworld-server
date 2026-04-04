@@ -1,7 +1,7 @@
 # 默认忽略文件
 
 /backups
-/palworld-server
+/palworld
 .ide
 # 忽略配置文件（但保留示例）
 *.env
