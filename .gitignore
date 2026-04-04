@@ -6,3 +6,4 @@
 # 忽略配置文件（但保留示例）
 *.env
 !*.env.example
+AGENTS.md
