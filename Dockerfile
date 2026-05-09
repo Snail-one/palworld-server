@@ -1,5 +1,5 @@
 # 使用固定版本的 Ubuntu 作为基础镜像
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 # 维护者信息
 LABEL maintainer="palworld-server-admin@example.com"
