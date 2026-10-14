@@ -19,7 +19,7 @@
 - 至少 4GB RAM
 - 至少 10GB 可用磁盘空间
 - 稳定的网络连接
-- 挂载到 `./palworld` 的目录必须允许容器写入
+- 挂载到 `./palworld` 和 `./config` 的目录必须允许容器用户 `palworld` 写入
 
 ### 1. 克隆仓库
 
@@ -30,7 +30,10 @@ cd palworld-server
 
 ### 2. 启动服务器
 
+启动前确保 `./palworld` 和 `./config` 已创建，并具有容器用户的写入权限；镜像中的目录权限不会覆盖宿主机挂载目录的权限。
+
 ```bash
+mkdir -p palworld config
 docker compose up -d
 ```
 
@@ -54,13 +57,31 @@ docker logs -f palworld-server
 
 #### 配置确认步骤
 
-项目根目录的 `config` 是指向 `./palworld/Pal/Saved/Config/LinuxServer` 的目录符号链接，首次安装生成配置后即可使用。通过这个快捷入口修改文件，会直接修改游戏实际使用的配置。
+项目根目录的 `config` 是独立的真实目录，通过 Docker 挂载到游戏配置目录。首次安装会直接将默认配置写入 `./config`，修改这里的文件就是修改游戏实际使用的配置。目录中的实际配置文件已被 Git 忽略。
 
 1. 编辑游戏配置：`./config/PalWorldSettings.ini`
 2. 修改确认文件：`./config/ConfigConfirmed.ini`
 3. 将 `CONFIG_CONFIRMED=false` 改为 `CONFIG_CONFIRMED=true`
 
 后续修改设置时，先执行 `docker compose stop`，编辑 `./config/PalWorldSettings.ini`，再执行 `docker compose up -d`。
+
+#### 从旧配置目录迁移
+
+独立配置挂载会遮住容器内原配置目录。已有服务器在首次切换前，先停服，再将旧配置复制到 `./config`；以下命令会保留新目录中已经存在的文件。
+
+```bash
+docker compose stop
+# 如果 config 是旧版快捷链接，只移除链接本身
+if [ -L config ]; then
+  unlink config
+fi
+mkdir -p config
+if [ -d ./palworld/Pal/Saved/Config/LinuxServer ]; then
+  cp -an ./palworld/Pal/Saved/Config/LinuxServer/. ./config/
+fi
+# 确保 config 目录及其文件允许容器用户读写
+docker compose up -d --force-recreate
+```
 
 > 💡 **提示**：设置 `SKIP_CONFIG_WAIT=true` 可跳过配置等待，直接使用默认配置启动
 
@@ -169,6 +190,9 @@ status  # 查看状态
 | 容器路径 | 主机路径 | 描述 |
 |----------|----------|------|
 | `/palworld-server` | `./palworld` | 服务器数据目录 |
+| `/palworld-server/Pal/Saved/Config/LinuxServer` | `./config` | 独立配置目录，包含 `PalWorldSettings.ini` 和 `ConfigConfirmed.ini` |
+
+配置挂载覆盖服务器数据目录中的同名子目录。修改使用 `./config`，备份时也需包含 `./config`；原 `./palworld/Pal/Saved/Config/LinuxServer` 中的旧配置会保留在宿主机，切换后游戏通过新挂载读取配置。
 
 ### 网络端口
 

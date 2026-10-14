@@ -31,6 +31,7 @@ services:
 
     volumes:
       - ./palworld:/palworld-server  # 服务器数据目录
+      - ./config:/palworld-server/Pal/Saved/Config/LinuxServer  # 独立配置目录
     tty: true
     stdin_open: true 
     mem_limit: 8g
