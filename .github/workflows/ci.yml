@@ -8,9 +8,8 @@ on:
     paths:
       - 'Dockerfile'
       - 'docker-compose.yml'
-      - 'start-server.sh'
-      - 'stop-server.sh'
       - 'scripts/**'
+      - 'tests/**'
       - '.github/workflows/ci.yml'
 
 jobs:
@@ -26,14 +25,15 @@ jobs:
 
       - name: Validate Bash syntax
         run: |
-          bash -n start-server.sh
-          bash -n stop-server.sh
           for script in scripts/*.sh; do
             bash -n "$script"
           done
 
       - name: Run ShellCheck
-        run: shellcheck start-server.sh stop-server.sh scripts/*.sh
+        run: shellcheck scripts/*.sh
+
+      - name: Test startup arguments
+        run: python3 -B -m unittest discover -s tests -v
 
   docker-checks:
     runs-on: ubuntu-latest

@@ -9,11 +9,13 @@ services:
       # 官方启动参数 (在scripts/start.sh中实际使用)
       - SERVER_PORT=8211  # 服务器端口 (-port=8211)
       - MAX_PLAYERS=16  # 最大玩家数量 (-players=16)
-      - PUBLIC_IP=  # 公共IP地址，留空为自动检测 (-publicip=x.x.x.x)
-      - PUBLIC_PORT=  # 公共端口，留空为使用SERVER_PORT (-publicport=xxxx)
+      - PUBLIC_IP=  # 社区服务器公网IP地址，留空由游戏自动检测 (-publicip=x.x.x.x)
+      - PUBLIC_PORT=  # 社区服务器公网端口，留空由游戏自动检测，不改变监听端口 (-publicport=xxxx)
       - PUBLIC_LOBBY=false  # 是否为社区服务器 (-publiclobby)
-      - WORKER_THREADS=  # 工作线程数，留空为自动 (-NumberOfWorkerThreadsServer=X)
+      - ENABLE_MULTITHREADING=false  # 可选多线程参数；v1.0及以后不设置可能性能更好
+      - WORKER_THREADS=  # 工作线程数，设置时必须启用ENABLE_MULTITHREADING (-NumberOfWorkerThreadsServer=X)
       - LOG_FORMAT=text  # 日志格式：text或json (-logformat=text)
+      - ENABLE_GAMEDATA_API=false  # 启用GameData API (-enable-gamedata-api)
 
       # 容器管理参数 (entrypoint.sh和其他脚本中使用)
       - CHECK_UPDATE=true  # 启动时检查更新

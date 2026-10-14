@@ -34,11 +34,6 @@ cd palworld-server
 docker compose up -d
 ```
 
-或使用便捷脚本：
-```bash
-./start-server.sh
-```
-
 ### 3. 查看服务器状态
 
 ```bash
@@ -59,9 +54,13 @@ docker logs -f palworld-server
 
 #### 配置确认步骤
 
-1. 编辑游戏配置：`./palworld/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini`
-2. 修改确认文件：`./palworld/Pal/Saved/Config/LinuxServer/ConfigConfirmed.ini`
+项目根目录的 `config` 是指向 `./palworld/Pal/Saved/Config/LinuxServer` 的目录符号链接，首次安装生成配置后即可使用。通过这个快捷入口修改文件，会直接修改游戏实际使用的配置。
+
+1. 编辑游戏配置：`./config/PalWorldSettings.ini`
+2. 修改确认文件：`./config/ConfigConfirmed.ini`
 3. 将 `CONFIG_CONFIRMED=false` 改为 `CONFIG_CONFIRMED=true`
+
+后续修改设置时，先执行 `docker compose stop`，编辑 `./config/PalWorldSettings.ini`，再执行 `docker compose up -d`。
 
 > 💡 **提示**：设置 `SKIP_CONFIG_WAIT=true` 可跳过配置等待，直接使用默认配置启动
 
@@ -76,11 +75,13 @@ docker logs -f palworld-server
 | **服务器基础设置** |
 | `MAX_PLAYERS` | 最大玩家数量 | `16` | `32` |
 | `SERVER_PORT` | 游戏服务器端口 | `8211` | `8211` |
-| `PUBLIC_IP` | 公网IP地址 | 自动检测 | `192.168.1.100` |
-| `PUBLIC_PORT` | 公网端口 | 使用SERVER_PORT | `8211` |
+| `PUBLIC_IP` | 社区服务器公网IP地址 | 游戏自动检测 | `203.0.113.10` |
+| `PUBLIC_PORT` | 社区服务器公网端口，不改变监听端口 | 游戏自动检测 | `8211` |
 | `PUBLIC_LOBBY` | 社区服务器模式 | `false` | `true` |
-| `WORKER_THREADS` | 工作线程数 | 自动检测 | `4` |
+| `ENABLE_MULTITHREADING` | 启用可选多线程参数 | `false` | `true` |
+| `WORKER_THREADS` | 工作线程数，需启用 `ENABLE_MULTITHREADING` | 留空，由游戏决定 | `4` |
 | `LOG_FORMAT` | 日志格式 | `text` | `json` |
+| `ENABLE_GAMEDATA_API` | 启用 GameData API | `false` | `true` |
 | **更新管理** |
 | `CHECK_UPDATE` | 启动时检查更新 | `true` | `false` |
 | `FORCE_UPDATE_ON_START` | 每次启动强制更新 | `false` | `true` |
@@ -101,6 +102,16 @@ environment:
   - FORCE_UPDATE_ON_START=false
   - SKIP_CONFIG_WAIT=true
 ```
+
+根据[官方启动参数文档](https://docs.palworldgame.com/settings-and-operation/arguments/)，v1.0 及以后，不设置旧多线程参数可能获得更好的性能，因此本容器默认关闭这组参数。需要启用时，设置 `ENABLE_MULTITHREADING=true`，并按实际负载比较性能；`WORKER_THREADS` 可留空，指定时必须为正整数。
+
+从旧版本升级时，如果已经设置 `WORKER_THREADS`，请同时设置 `ENABLE_MULTITHREADING=true`，或清空 `WORKER_THREADS` 使用游戏默认行为。两个新增开关 `ENABLE_MULTITHREADING` 和 `ENABLE_GAMEDATA_API` 仅接受 `true` 或 `false`。
+
+### 游戏 INI 配置
+
+游戏设置在 `./config/PalWorldSettings.ini` 中修改，包括 `CrossplayPlatforms`（允许连接的平台）、`RESTAPIEnabled` / `RESTAPIPort`（REST API）、`bIsUseBackupSaveData`（世界备份）、`bAllowClientMod`（客户端 Mod 接入）和 `MaxBuildingLimitNum`（玩家建筑数量限制）。`AllowConnectPlatform` 当前不可用，应使用 `CrossplayPlatforms`。
+
+`ENABLE_GAMEDATA_API` 对应启动参数，不会自动修改上述 REST API 配置。首次安装会复制游戏附带的官方默认配置；已有配置不会自动覆盖或补齐新字段。升级后请对照新版本的 `./palworld/DefaultPalWorldSettings.ini` 和[官方配置参数文档](https://docs.palworldgame.com/settings-and-operation/configuration/)检查所需设置。
 
 ## 🎮 服务器管理
 
@@ -133,16 +144,6 @@ update  # 检查并更新服务器
 status  # 查看状态
 ```
 
-### 便捷脚本
-
-```bash
-# 启动服务器
-./start-server.sh
-
-# 停止服务器
-./stop-server.sh
-```
-
 ## 📋 官方启动参数
 
 本容器**严格遵循**幻兽帕鲁官方文档的启动参数规范：
@@ -152,11 +153,12 @@ status  # 查看状态
 | `-port=8211` | 服务器监听端口 | `SERVER_PORT` |
 | `-players=32` | 最大玩家数量 | `MAX_PLAYERS` |
 | `-publiclobby` | 社区服务器模式 | `PUBLIC_LOBBY` |
-| `-publicip=x.x.x.x` | 指定公网IP地址 | `PUBLIC_IP` |
-| `-publicport=xxxx` | 指定公网端口 | `PUBLIC_PORT` |
+| `-publicip=x.x.x.x` | 社区服务器公网IP地址，省略时由游戏自动检测 | `PUBLIC_IP` |
+| `-publicport=xxxx` | 社区服务器公网端口，省略时由游戏自动检测，不改变监听端口 | `PUBLIC_PORT` |
 | `-logformat=text` | 日志格式 | `LOG_FORMAT` |
-| `-NumberOfWorkerThreadsServer=X` | 工作线程数 | `WORKER_THREADS` |
-| `-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS` | 多线程性能优化 | 自动应用 |
+| `-NumberOfWorkerThreadsServer=X` | 工作线程数，需启用多线程参数 | `WORKER_THREADS` |
+| `-useperfthreads -NoAsyncLoadingThread -UseMultithreadForDS` | 可选多线程参数，默认不添加 | `ENABLE_MULTITHREADING=true` |
+| `-enable-gamedata-api` | 启用 GameData API | `ENABLE_GAMEDATA_API=true` |
 
 > 📖 详细信息请参考 [官方文档](https://docs.palworldgame.com/settings-and-operation/arguments)
 
@@ -229,10 +231,10 @@ docker exec -it palworld-server update
 3. **检查配置文件**：
    ```bash
    # 查看游戏配置
-   cat ./palworld/Pal/Saved/Config/LinuxServer/PalWorldSettings.ini
+   cat ./config/PalWorldSettings.ini
    
    # 查看配置确认状态
-   cat ./palworld/Pal/Saved/Config/LinuxServer/ConfigConfirmed.ini
+   cat ./config/ConfigConfirmed.ini
    ```
 
 ## 🤝 贡献指南
@@ -240,6 +242,7 @@ docker exec -it palworld-server update
 欢迎提交问题和改进建议。提交前建议先运行一次：
 
 ```bash
+python3 -B -m unittest discover -s tests -v
 docker compose config
 docker build -t palworld-server .
 ```
