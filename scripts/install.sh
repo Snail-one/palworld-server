@@ -10,7 +10,11 @@ if [ ! -f "${STEAMCMD_DIR}/steamcmd.sh" ]; then
     echo -e "\e[1;33m[信息]\e[0m 尝试重新安装SteamCMD..."
     mkdir -p "${STEAMCMD_DIR}"
     cd "${STEAMCMD_DIR}"
-    curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+    curl -fsSL --retry 3 --connect-timeout 15 \
+        "https://client-update.steamstatic.com/installer/steamcmd_linux.tar.gz" \
+        -o steamcmd_linux.tar.gz
+    tar -xzf steamcmd_linux.tar.gz
+    rm -f steamcmd_linux.tar.gz
 fi
 echo -e "\e[1;33m[信息]\e[0m SteamCMD 已安装"
 

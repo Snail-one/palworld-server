@@ -47,3 +47,15 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t palworld-server:ci .
+
+      - name: Check image runtime dependencies
+        run: |
+          docker run --rm --network none --entrypoint /bin/bash palworld-server:ci -ec '
+            for tool in curl tar gzip pgrep ps timeout awk; do
+              command -v "$tool"
+            done
+            test "$(locale charmap)" = UTF-8
+            ldd /steamcmd/linux32/steamcmd > /tmp/steamcmd-dependencies
+            cat /tmp/steamcmd-dependencies
+            ! grep -q "not found" /tmp/steamcmd-dependencies
+          '

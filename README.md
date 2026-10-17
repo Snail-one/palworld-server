@@ -11,6 +11,23 @@
 - 📊 **状态监控**：实时查看服务器运行状态
 - ✅ **官方兼容**：严格遵循官方启动参数规范
 
+## 基础镜像与必要依赖
+
+镜像使用 `debian:13-slim`，通过 `--no-install-recommends` 只安装运行所需的软件包：
+
+| 软件包 | 用途 |
+|--------|------|
+| `curl` | 下载 SteamCMD、查询服务器更新 |
+| `ca-certificates` | 验证 HTTPS 下载和 API 请求的证书 |
+| `lib32gcc-s1` | SteamCMD 的 32 位运行库，同时通过依赖安装 32 位 glibc |
+| `procps` | 为状态脚本和健康检查提供 `pgrep`、`ps` |
+
+SteamCMD 使用 [Valve 的 Linux 引导安装包](https://client-update.steamstatic.com/installer/steamcmd_linux.tar.gz)，解压到 `/steamcmd`，运行时会更新自身。[Steamworks 文档](https://partner.steamgames.com/doc/sdk/uploading#4)说明了引导安装和自动更新机制。帕鲁的[官方部署文档](https://docs.palworldgame.com/getting-started/deploy-dedicated-server/)也要求先安装 SteamCMD。
+
+`wget`、`tmux`、`unzip` 未被当前脚本使用，已移除。语言环境改用 Debian 自带的 `C.UTF-8`，保留 UTF-8 支持，无需额外安装 `locales` 并生成语言数据；相关文件由 [`libc-bin`](https://packages.debian.org/trixie/amd64/libc-bin/filelist) 提供。`procps` 的工具列表见 [Debian 包说明](https://packages.debian.org/trixie/procps)。Bash、tar、gzip 和基础文本处理工具由基础镜像提供。
+
+CI 构建镜像后会检查运行工具、UTF-8 语言环境以及 SteamCMD 引导程序的动态库是否齐全，不需要下载游戏文件。
+
 ## 快速开始
 
 ### 系统要求

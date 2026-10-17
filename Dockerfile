@@ -10,30 +10,26 @@ ENV DEBIAN_FRONTEND=noninteractive \
     STEAMCMD_DIR=/steamcmd \
     GAME_ID=2394010 \
     GAME_PORT=8211 \
-    LANG=en_US.UTF-8 \
-    LANGUAGE=en_US:en \
-    LC_ALL=en_US.UTF-8
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 # 安装必要的软件包
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    wget \
     curl \
     ca-certificates \
     lib32gcc-s1 \
-    libstdc++6 \
-    tmux \
-    unzip \
-    locales \
-    && printf 'en_US.UTF-8 UTF-8\n' > /etc/locale.gen \
-    && locale-gen \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # 创建目录
 RUN mkdir -p ${SERVER_DIR} ${STEAMCMD_DIR}
 
 # 安装SteamCMD
-RUN cd ${STEAMCMD_DIR} && \
-    curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf -
+RUN curl -fsSL --retry 3 --connect-timeout 15 \
+    "https://client-update.steamstatic.com/installer/steamcmd_linux.tar.gz" \
+    -o /tmp/steamcmd_linux.tar.gz && \
+    tar -xzf /tmp/steamcmd_linux.tar.gz -C "${STEAMCMD_DIR}" && \
+    rm -f /tmp/steamcmd_linux.tar.gz
 
 # 创建配置目录
 RUN mkdir -p ${SERVER_DIR}/Logs && \
