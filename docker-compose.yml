@@ -2,7 +2,7 @@ services:
   palworld-server:
     image: ghcr.io/snail-one/palworld-server
     container_name: palworld-server
-    restart: unless-stopped
+    restart: on-failure  # 未确认配置时正常退出并保持停止，异常退出时自动重启
     ports:
       - "8211:8211/udp"  # 游戏端口
     environment:
@@ -20,7 +20,7 @@ services:
       # 容器管理参数 (entrypoint.sh和其他脚本中使用)
       - CHECK_UPDATE=true  # 启动时检查更新
       - FORCE_UPDATE_ON_START=false  # 每次启动都强制更新（跳过版本检查）
-      - SKIP_CONFIG_WAIT=false  # 是否跳过配置等待
+      - SKIP_CONFIG_WAIT=false  # 是否自动确认配置并直接启动
       
       # 服务器路径变量 (在多个脚本中引用)
       - SERVER_DIR=/palworld-server  # 服务器数据目录

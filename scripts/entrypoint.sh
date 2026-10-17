@@ -30,7 +30,14 @@ fi
 
 # 设置服务器配置
 echo -e "\e[1;33m[信息]\e[0m 检查服务器配置..."
-/scripts/setup_config.sh
+CONFIG_EXIT_CODE=0
+/scripts/setup_config.sh || CONFIG_EXIT_CODE=$?
+if [ "${CONFIG_EXIT_CODE}" -eq 78 ]; then
+    # 配置未确认属于正常停止，配合 on-failure 避免自动重启
+    exit 0
+elif [ "${CONFIG_EXIT_CODE}" -ne 0 ]; then
+    exit "${CONFIG_EXIT_CODE}"
+fi
 
 # 启动服务器
 echo -e "\e[1;32m[信息]\e[0m 启动幻兽帕鲁服务器..."

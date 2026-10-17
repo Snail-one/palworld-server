@@ -49,11 +49,15 @@ docker logs -f palworld-server
 
 1. 下载并安装幻兽帕鲁服务器
 2. 复制官方默认配置文件
-3. 等待用户确认配置（最多5分钟）
-4. 启动游戏服务器
+3. 将配置标记为未确认，正常退出容器，游戏服务器不会启动
+4. 用户修改并确认配置后，手动再次启动容器，运行游戏服务器
 
-如果安装完成后缺少官方默认配置文件，容器会直接报错退出，避免生成过时的本地模板配置。
+初始化时，如果 `PalWorldSettings.ini` 缺失、为空或只有空白字符，容器会复制官方模板，并将配置重置为未确认；已有非空配置会保留。即使原先 `CONFIG_CONFIRMED=true`，恢复默认配置后也需要重新确认。
+
+如果初始化时官方默认配置文件缺失或为空，容器会直接报错退出，避免生成过时的本地模板配置。启动游戏前也会检查游戏配置是否为空，为空则拒绝启动。
 如果挂载目录没有写入权限，容器也会在初始化阶段直接报错退出。
+
+Compose 默认采用 `restart: on-failure`：未确认配置时容器以退出码 0 停止，不会自动重启；异常退出时仍会重试。Docker 服务重启后需要手动启动此容器。如果使用自己的 Compose 文件，也应采用 `on-failure` 或 `"no"`，避免自动重启策略反复启动未确认的容器。
 
 #### 配置确认步骤
 
@@ -62,6 +66,9 @@ docker logs -f palworld-server
 1. 编辑游戏配置：`./config/PalWorldSettings.ini`
 2. 修改确认文件：`./config/ConfigConfirmed.ini`
 3. 将 `CONFIG_CONFIRMED=false` 改为 `CONFIG_CONFIRMED=true`
+4. 执行 `docker compose up -d` 再次启动容器
+
+容器退出后不会继续轮询确认文件；修改为 `true` 不会自动启动，需要执行第 4 步。首次初始化后 `docker compose ps -a` 显示 `Exited (0)` 是预期状态。
 
 后续修改设置时，先执行 `docker compose stop`，编辑 `./config/PalWorldSettings.ini`，再执行 `docker compose up -d`。
 
@@ -83,7 +90,7 @@ fi
 docker compose up -d --force-recreate
 ```
 
-> 💡 **提示**：设置 `SKIP_CONFIG_WAIT=true` 可跳过配置等待，直接使用默认配置启动
+> 💡 **提示**：设置 `SKIP_CONFIG_WAIT=true` 可自动确认并直接启动，已有非空配置会保留。该变量名为兼容旧配置而保留，当前流程不会等待。
 
 ## 镜像发布与版本标签
 
@@ -143,7 +150,7 @@ docker image inspect ghcr.io/snail-one/palworld-server:latest \
 | `CHECK_UPDATE` | 启动时检查更新 | `true` | `false` |
 | `FORCE_UPDATE_ON_START` | 每次启动强制更新 | `false` | `true` |
 | **高级设置** |
-| `SKIP_CONFIG_WAIT` | 跳过配置等待 | `false` | `true` |
+| `SKIP_CONFIG_WAIT` | 自动确认配置并直接启动；关闭时未确认配置会使容器停止 | `false` | `true` |
 | `SERVER_DIR` | 服务器目录 | `/palworld-server` | - |
 | `GAME_ID` | Steam应用ID | `2394010` | - |
 | `STEAMCMD_DIR` | SteamCMD目录 | `/steamcmd` | - |
