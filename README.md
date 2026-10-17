@@ -85,6 +85,42 @@ docker compose up -d --force-recreate
 
 > 💡 **提示**：设置 `SKIP_CONFIG_WAIT=true` 可跳过配置等待，直接使用默认配置启动
 
+## 镜像发布与版本标签
+
+发布工作流支持两种触发方式：
+
+- **推送 Git tag**：构建镜像并发布到 GHCR，例如执行 `git tag v1.0.0` 后执行 `git push origin v1.0.0`。
+- **手动触发（Run workflow）**：仅构建镜像并验证 SteamCMD 版本读取，不登录 GHCR、不推送镜像；即使手动选择 Git tag 运行也不会发布。
+
+普通分支推送不会触发此发布工作流。Git tag 用于触发发布，镜像的版本标签仍使用 SteamCMD 工具自身的版本号。
+
+GitHub Actions 发布到 `ghcr.io/snail-one/palworld-server` 时，会生成以下标签：
+
+| 标签 | 含义 |
+|------|------|
+| `latest` | 最近发布的镜像 |
+| `sha-<提交短哈希>` | 对应 Git 提交的镜像 |
+| `<SteamCMD 版本号>` | 镜像中实际安装的 SteamCMD 工具版本号，自动获取 |
+
+构建镜像时会运行 `steamcmd.sh +quit`，完成 SteamCMD 自身的初始化和更新，再从其安装清单 `/steamcmd/package/steam_cmd_linux.installed` 中读取 `version`，保存到 `/steamcmd/version.txt`。发布流程读取镜像内的该文件，直接以工具版本号作为标签；获取失败会终止构建或发布，无需手动填写版本号。
+
+发布完成后即可按 SteamCMD 工具版本号拉取，例如：
+
+```bash
+docker pull ghcr.io/snail-one/palworld-server:1791918946
+```
+
+将示例编号替换为实际发布的 SteamCMD 版本号。使用 Docker Compose 时，将 `docker-compose.yml` 中的 `image` 设置为相同镜像地址，再执行 `docker compose pull` 和 `docker compose up -d`。
+
+版本标签记录**镜像构建时的 SteamCMD 工具版本**。SteamCMD 在后续运行时仍可能自动更新。帕鲁服务端在容器启动时下载和更新，选择该标签不会锁定或回退游戏版本。同一 SteamCMD 版本再次发布时，对应标签会指向新镜像；需要区分容器代码时可使用 `sha-<提交短哈希>`。
+
+SteamCMD 工具版本也会写入镜像标签元数据，可通过以下命令查看：
+
+```bash
+docker image inspect ghcr.io/snail-one/palworld-server:latest \
+  --format '{{ index .Config.Labels "io.palworld.steamcmd.version" }}'
+```
+
 ## ⚙️ 配置参数
 
 ### 环境变量配置
