@@ -1,6 +1,6 @@
 # 幻兽帕鲁专用服务器 Docker 容器
 
-一个精简高效的幻兽帕鲁（Palworld）专用服务器Docker容器，基于Ubuntu构建，专注于稳定性和易用性。
+一个精简高效的幻兽帕鲁（Palworld）专用服务器Docker容器，基于 Debian 13 slim 构建，专注于稳定性和易用性。
 
 ## ✨ 功能特点
 
@@ -30,7 +30,7 @@ cd palworld-server
 
 ### 2. 启动服务器
 
-启动前确保 `./palworld` 和 `./config` 已创建，并具有容器用户的写入权限；镜像中的目录权限不会覆盖宿主机挂载目录的权限。
+启动前确保 `./palworld` 和 `./config` 已创建，并具有容器用户的写入权限；容器用户 `palworld` 的 UID/GID 由镜像内系统默认分配。镜像中的目录权限不会覆盖宿主机挂载目录的权限。
 
 ```bash
 mkdir -p palworld config

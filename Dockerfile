@@ -1,5 +1,5 @@
-# 使用固定版本的 Ubuntu 作为基础镜像
-FROM ubuntu:26.04
+# 使用固定大版本的 Debian 精简镜像
+FROM debian:13-slim
 
 # 维护者信息
 LABEL maintainer="palworld-server-admin@example.com"
@@ -15,15 +15,17 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=en_US.UTF-8
 
 # 安装必要的软件包
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
     ca-certificates \
     lib32gcc-s1 \
+    libstdc++6 \
     tmux \
     unzip \
     locales \
-    && locale-gen en_US.UTF-8 \
+    && printf 'en_US.UTF-8 UTF-8\n' > /etc/locale.gen \
+    && locale-gen \
     && rm -rf /var/lib/apt/lists/*
 
 # 创建目录
@@ -37,8 +39,8 @@ RUN cd ${STEAMCMD_DIR} && \
 RUN mkdir -p ${SERVER_DIR}/Logs && \
     mkdir -p ${SERVER_DIR}/Pal/Saved/Config/LinuxServer
 
-# 创建非root用户
-RUN useradd -m -d /home/palworld -s /bin/bash palworld
+# 创建非root用户，UID/GID 由系统默认分配
+RUN useradd --user-group -m -d /home/palworld -s /bin/bash palworld
 
 # 设置目录权限
 RUN chown -R palworld:palworld ${SERVER_DIR} ${STEAMCMD_DIR} && \
