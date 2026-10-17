@@ -24,29 +24,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4 # 启用 Buildx 以支持缓存和多平台
 
-      - name: Build image to read installed SteamCMD version
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          load: true
-          tags: palworld-server:build
-          build-args: |
-            STEAMCMD_REFRESH=${{ github.run_id }}-${{ github.run_attempt }}
-          cache-from: type=gha
-
-      - name: Read SteamCMD version from image
-        id: steamcmd
-        shell: bash
-        run: |
-          version=$(docker run --rm --network none --entrypoint /bin/cat \
-            palworld-server:build /steamcmd/version.txt)
-          if [[ ! "$version" =~ ^[0-9]+$ ]]; then
-            echo "::error::无法读取有效的 SteamCMD 工具版本号"
-            exit 1
-          fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "SteamCMD 工具版本: $version"
-
       - name: Log in to GHCR
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: docker/login-action@v4
@@ -55,9 +32,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 保留 latest 和 commit sha，直接使用 SteamCMD 工具版本作为版本标签
+      # 保留 latest 和 commit sha，使用 Git tag 作为版本标签
       - name: Extract Docker metadata
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         id: meta
         uses: docker/metadata-action@v6
         with:
@@ -65,20 +41,15 @@ jobs:
           tags: |
             type=raw,value=latest
             type=sha,format=short
-            type=raw,value=${{ steps.steamcmd.outputs.version }},priority=800
-          labels: |
-            org.opencontainers.image.version=${{ steps.steamcmd.outputs.version }}
-            io.palworld.steamcmd.version=${{ steps.steamcmd.outputs.version }}
+            type=ref,event=tag,priority=800
 
       - name: Build and push
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         uses: docker/build-push-action@v7
         with:
           context: .
-          push: true
+          push: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
+          load: ${{ github.event_name == 'workflow_dispatch' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            STEAMCMD_REFRESH=${{ github.run_id }}-${{ github.run_attempt }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

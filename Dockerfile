@@ -68,15 +68,6 @@ VOLUME ["${SERVER_DIR}"]
 # 切换到非root用户
 USER palworld
 
-# 发布时刷新 SteamCMD，并保存镜像中实际安装的工具版本
-ARG STEAMCMD_REFRESH=local
-RUN echo "SteamCMD refresh: ${STEAMCMD_REFRESH}" && \
-    "${STEAMCMD_DIR}/steamcmd.sh" +quit && \
-    version="$(sed -nE 's/^[[:space:]]*"version"[[:space:]]*"([0-9]+)"[[:space:]]*$/\1/p' "${STEAMCMD_DIR}/package/steam_cmd_linux.installed")" && \
-    test -n "${version}" && \
-    case "${version}" in *[!0-9]*) exit 1 ;; esac && \
-    printf '%s\n' "${version}" > "${STEAMCMD_DIR}/version.txt"
-
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 CMD ["/scripts/status.sh"]
 
 # 设置容器入口点
